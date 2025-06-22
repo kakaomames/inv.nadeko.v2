@@ -1076,3 +1076,9 @@ default_user_preferences:
 # donation_url: "https://example.com/donate"
 # contact_url: "https://example.com/contact"
 # home_domain: "https://example.com/
+
+#Data structure and default values got from src/invidious/config.cr:335,12
+video_cache:
+  enabled: true         
+  backend: 1            
+  lru_max_size: 18432   
