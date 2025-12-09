@@ -37,7 +37,7 @@ RUN --mount=type=cache,target=/root/.cache/crystal \
         --static --warnings all \
         --link-flags "-lxml2 -llzma";
 
-FROM mirror.gcr.io/alpine:3.22
+FROM mirror.gcr.io/alpine:3.23
 RUN apk add --no-cache rsvg-convert ttf-opensans tini tzdata
 WORKDIR /invidious
 RUN addgroup -g 1000 -S invidious && \
