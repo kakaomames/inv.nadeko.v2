@@ -46,12 +46,12 @@ module Invidious::Routes::BeforeAll
           env.set "current_companion", index
           env.set "companion_public_url", CONFIG.invidious_companion[index].public_url.to_s
         else
-          if !env.request.cookies[CONFIG.server_id_cookie_name]?
-            env.response.cookies[CONFIG.server_id_cookie_name] = Invidious::User::Cookies.server_id(host)
+          if preferences.backend_number.nil?
+            preferences.backend_number = rand(CONFIG.invidious_companion.size)
           end
 
           begin
-            current_companion = env.request.cookies[CONFIG.server_id_cookie_name].value.try &.to_i
+            current_companion = preferences.backend_number
           rescue
             working_ends = BackendInfo.get_working_ends
             if !working_ends.empty?
@@ -61,29 +61,31 @@ module Invidious::Routes::BeforeAll
             end
           end
 
-          if current_companion > CONFIG.invidious_companion.size
+          if current_companion && (current_companion > CONFIG.invidious_companion.size)
             current_companion = current_companion % CONFIG.invidious_companion.size - 1
-            env.response.cookies[CONFIG.server_id_cookie_name] = Invidious::User::Cookies.server_id(host, current_companion)
+            preferences.backend_number = current_companion
           end
 
           companion_status = BackendInfo.get_status
 
-          if companion_status[current_companion] != BackendInfo::Status::Working.to_i
+          if current_companion && (companion_status[current_companion] != BackendInfo::Status::Working.to_i)
             current_companion = 0 if current_companion == companion_status.size - 1
             alive_companion = companion_status.index(BackendInfo::Status::Working.to_i, offset: current_companion)
             if alive_companion
               env.set "companion_switched", true
               current_companion = alive_companion
-              env.response.cookies[CONFIG.server_id_cookie_name] = Invidious::User::Cookies.server_id(host, current_companion)
+              preferences.backend_number = current_companion
             end
           end
 
           env.set "current_companion", current_companion
 
-          if host.split(".").last == "i2p"
-            env.set "companion_public_url", CONFIG.invidious_companion[current_companion].i2p_public_url.to_s
-          else
-            env.set "companion_public_url", CONFIG.invidious_companion[current_companion].public_url.to_s
+          if current_companion
+            if host.split(".").last == "i2p"
+              env.set "companion_public_url", CONFIG.invidious_companion[current_companion].i2p_public_url.to_s
+            else
+              env.set "companion_public_url", CONFIG.invidious_companion[current_companion].public_url.to_s
+            end
           end
         end
 

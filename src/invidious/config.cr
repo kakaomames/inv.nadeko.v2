@@ -59,6 +59,8 @@ struct ConfigPreferences
   property hidden_channels : Array(String)? = nil
   @[YAML::Field(ignore: true)]
   property default_trending_type : Invidious::Routes::Feeds::TrendingTypes = Invidious::Routes::Feeds::TrendingTypes::Default
+  @[YAML::Field(ignore: true)]
+  property backend_number : Int32? = nil
 
   def to_tuple
     {% begin %}
@@ -220,8 +222,6 @@ class Config
   property max_dash_resolution : Int32?
 
   property pubsub_domain : String = ""
-
-  property server_id_cookie_name : String = "COMPANION_ID"
 
   property video_cache : VideoCacheConfig = VideoCacheConfig.from_yaml("")
 
