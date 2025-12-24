@@ -8,6 +8,9 @@
 ## Database configuration with separate parameters.
 ## This setting is MANDATORY, unless 'database_url' is used.
 ##
+video_cache:
+  enabled: false
+  
 db:
   user: kemal
   password: kemal
