@@ -23,6 +23,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libssl-dev libxml2-dev libyaml-dev libpcre3-dev libevent-dev
           shards install
+          sed -i 's/directory_listing(context.response, request_path, file_path)/directory_listing(context.response, Path.new(request_path), Path.new(file_path))/' src/ext/kemal_static_file_handler.cr
         
       - name: 🚀 ビルド＆起動テスト
         run: |
