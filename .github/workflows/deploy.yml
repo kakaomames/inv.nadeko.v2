@@ -1,4 +1,4 @@
-name: Invidious Invisible Engine？
+name: Invidious Invisible Engine
 
 on:
   workflow_dispatch:
@@ -8,55 +8,44 @@ on:
 jobs:
   launch:
     runs-on: ubuntu-latest
+    timeout-minutes: 15 # ⚡️念のためタイムアウトを設定
     
-    # 💥 背後で動くデータベース軍団（Services）を召喚！
     services:
       postgres:
         image: postgres:14
         env:
           POSTGRES_DB: invidious
           POSTGRES_USER: kemal
-          POSTGRES_PASSWORD: kemal_password
+          POSTGRES_PASSWORD: kemal # 💎カカオマメ隊員の設定に合わせたぞ！
         ports:
           - 5432:5432
-        # DBが準備完了するまで待機する設定だ
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      redis:
-        image: redis:6.2
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
-      - name: 📦 コードを抽出‼️
+      - name: 📦 コードを抽出
         uses: actions/checkout@v4
 
-      - name: 💎 Crystal環境のセットアップ‼️
+      - name: 💎 Crystal環境のセットアップ
         uses: crystal-lang/install-crystal@v1
         with:
           crystal: latest
 
-      - name: 🛠 依存関係のインストール‼️
+      - name: 🛠 依存関係のインストール
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev libxml2-dev libyaml-dev libpcre3-dev libevent-dev
           shards install
           
-      - name: 🚀 ビルド＆インビジブル起動テスト‼️
+          # 型エラーの自動修正パッチ（まだ直してなければこれが必要だ！）
+          sed -i 's/directory_listing(context.response, request_path, file_path)/directory_listing(context.response, Path.new(request_path), Path.new(file_path))/' src/ext/kemal_static_file_handler.cr
+          
+      - name: 🚀 ビルド＆インビジブル起動！
         run: |
-          # バイナリをビルド！
           crystal build src/invidious.cr --release
           
-          # 起動確認（バージョン表示まで行けば成功だ！）
+          # 起動確認だ！
           ./invidious --version
-        env:
-          # Actions環境でDBに繋ぐための設定だ
-          INVIDIOUS_DB_URL: postgres://kemal:kemal_password@localhost:5432/invidious
