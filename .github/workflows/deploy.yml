@@ -51,10 +51,21 @@ jobs:
           shards install
           # 以前の型エラー修正（念のため）
           sed -i 's/directory_listing(context.response, request_path, file_path)/directory_listing(context.response, Path.new(request_path), Path.new(file_path))/' src/ext/kemal_static_file_handler.cr
-
-      - name: 🚀 ビルド & 起動（正面突破！）
+          
+      - name: 🚀 ビルド & データベース初期化
         run: |
+          # バイナリビルド
           crystal build src/invidious.cr --release
           
-          # RedisとDBに確実に繋がるはずだ！
-          ./invidious --version
+          # 💥【重要】DBの役割（role）エラーを回避するため、
+          # 設定ファイル通りのユーザー「kemal」を明示的に指定して初期化するぞ！
+          ./invidious --check-tables --config-file=config/config.yml
+          
+          # バージョン確認（ここまで来れば勝利だ！）
+          ./invidious --version --config-file=config/config.yml
+        env:
+          # RedisとDBの場所を「ここだ！」と指し示す環境変数
+          INVIDIOUS_DB_URL: postgres://kemal:kemal@localhost:5432/invidious
+          INVIDIOUS_REDIS_URL: redis://localhost:6379
+          INVIDIOUS_VIDEO_CACHE_ENABLED: false
+          
