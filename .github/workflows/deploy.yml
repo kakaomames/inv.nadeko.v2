@@ -1,4 +1,4 @@
-name: Invidious Invisible Engine
+name: Invidious Final Strike
 
 on:
   workflow_dispatch:
@@ -8,15 +8,25 @@ on:
 jobs:
   launch:
     runs-on: ubuntu-latest
-    timeout-minutes: 15 # ⚡️念のためタイムアウトを設定
+    timeout-minutes: 20
     
+    # 💥 ここでRedisとPostgresを確実に召喚する！
     services:
+      redis:
+        image: redis:6.2
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       postgres:
         image: postgres:14
         env:
           POSTGRES_DB: invidious
           POSTGRES_USER: kemal
-          POSTGRES_PASSWORD: kemal # 💎カカオマメ隊員の設定に合わせたぞ！
+          POSTGRES_PASSWORD: kemal
         ports:
           - 5432:5432
         options: >-
@@ -34,24 +44,17 @@ jobs:
         with:
           crystal: latest
 
-      - name: 🛠 依存関係のインストール
+      - name: 🛠 依存関係のインストール & ソース修正
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev libxml2-dev libyaml-dev libpcre3-dev libevent-dev
           shards install
-          
-          # 型エラーの自動修正パッチ（まだ直してなければこれが必要だ！）
+          # 以前の型エラー修正（念のため）
           sed -i 's/directory_listing(context.response, request_path, file_path)/directory_listing(context.response, Path.new(request_path), Path.new(file_path))/' src/ext/kemal_static_file_handler.cr
-          
-      - name: 🚀 ビルド＆インビジブル起動！
+
+      - name: 🚀 ビルド & 起動（正面突破！）
         run: |
           crystal build src/invidious.cr --release
-          # バイナリをビルド
           
-          # 💥【ここが重要】環境変数でRedisを無効化し、DB接続先を強制指定して起動！
-          # video_cache を false にする設定を環境変数で上書きするぞ
-          export INVIDIOUS_VIDEO_CACHE_ENABLED=false
-          export INVIDIOUS_DB_URL=postgres://kemal:kemal@localhost:5432/invidious
-          
-          # 起動確認だ！
+          # RedisとDBに確実に繋がるはずだ！
           ./invidious --version
