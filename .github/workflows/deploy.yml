@@ -46,6 +46,12 @@ jobs:
       - name: 🚀 ビルド＆インビジブル起動！
         run: |
           crystal build src/invidious.cr --release
+          # バイナリをビルド
+          
+          # 💥【ここが重要】環境変数でRedisを無効化し、DB接続先を強制指定して起動！
+          # video_cache を false にする設定を環境変数で上書きするぞ
+          export INVIDIOUS_VIDEO_CACHE_ENABLED=false
+          export INVIDIOUS_DB_URL=postgres://kemal:kemal@localhost:5432/invidious
           
           # 起動確認だ！
           ./invidious --version
